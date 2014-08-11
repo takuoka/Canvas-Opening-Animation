@@ -45,6 +45,7 @@ module.exports = (grunt) ->
                     port: 3000
                     hostname: "*"
                     livereload: 35729
+                    base: "build"
 
         esteWatch:
             options:
@@ -53,14 +54,16 @@ module.exports = (grunt) ->
                     "coffee/"
                     "sass/"
                     "build/"
+                    "build/js"
+                    "build/css"
                 ]
                 livereload:
                     enabled: true
                     extensions: ['js', 'html', 'css']
                     port: 35729
-            jade: (path) -> ['jade']
+            jade: (path) -> ['newer:jade']
             coffee: (path) -> ['newer:coffee']
-            sass: (path) -> ['compass']
+            sass: (path) -> ['newer:compass']
 
     grunt.initConfig conf
 

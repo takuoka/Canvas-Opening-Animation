@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=1200">
+    <title>taku_oka.net</title>
+    <link href="lib/normalize.min.css" rel="stylesheet" type="text/css">
+    <link href="css/index.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+    <canvas id="splash"></canvas>
+  </body>
+  <script src="js/splash.js"></script>
+  <script>
+    console.log("entry point");
+    
+    var splashCanvas, splashCtx;
+    
+    window.onload = function() {
+     splashCanvas = document.getElementById("splash");
+     splashCanvas.width = window.innerWidth;
+     splashCanvas.height = window.innerHeight;
+     splashCtx = splashCanvas.getContext("2d");
+     
+     startSplash();
+    };
+    window.onresize = function() {
+     splashCanvas.width = window.innerWidth;
+     splashCanvas.height = window.innerHeight-10;
+    }
+  </script>
+</html>

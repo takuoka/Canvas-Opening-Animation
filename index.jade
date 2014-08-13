@@ -12,22 +12,30 @@ html(lang="ja")
 
 		canvas#splash
 
+		#page
+			h1 my page
+			p pagepageapwefaaaaaaaaaaaaaaaaaaa
+
 
 	script(src='js/splash.js')
 	script.
 		console.log("entry point");
 
-		var splashCanvas, splashCtx;
+		var splashCanvas, sctx, maxW, maxH;
 
 		window.onload = function() {
 			splashCanvas = document.getElementById("splash");
 			splashCanvas.width = window.innerWidth;
 			splashCanvas.height = window.innerHeight;
-			splashCtx = splashCanvas.getContext("2d");
+			maxW = splashCanvas.width;
+			maxH = splashCanvas.height;
+			sctx = splashCanvas.getContext("2d");
 
-			startSplash();
+			START_SPLASH();
 		};
 		window.onresize = function() {
 			splashCanvas.width = window.innerWidth;
 			splashCanvas.height = window.innerHeight-10;
+			maxW = splashCanvas.width;
+			maxH = splashCanvas.height;
 		}

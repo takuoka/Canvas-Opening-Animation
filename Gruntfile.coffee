@@ -24,7 +24,7 @@ module.exports = (grunt) ->
         coffee:
             compile:
                 options:
-                    bare: true
+                    bare: false
                 files: [
                     expand: true
                     cwd: 'coffee'

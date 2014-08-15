@@ -66,6 +66,7 @@
         this.t += 1 / 1000;
         this.x += this.vx;
         this.y += this.vy;
+        this.rotate += this.vx;
         this.boundStrength *= this.boundReduction;
       };
       x_beforGather = null;
@@ -165,13 +166,13 @@
 
   drawBalls = function() {
     var ball, _i, _len, _results;
+    sctx.restore();
     sctx.fillStyle = "#000";
     sctx.fillRect(0, 0, maxW, maxH);
     sctx.font = BALL_FONT;
     sctx.fillStyle = "white";
     sctx.textAlign = "center";
     sctx.textBaseline = "middle";
-    sctx.save();
     _results = [];
     for (_i = 0, _len = balls.length; _i < _len; _i++) {
       ball = balls[_i];
@@ -182,7 +183,10 @@
       sctx.closePath();
       sctx.fill();
       sctx.fillStyle = "white";
-      _results.push(sctx.fillText(ball.char, ball.x, ball.y));
+      sctx.save();
+      sctx.translate(ball.x, ball.y);
+      sctx.rotate(ball.rotate * Math.PI / 180);
+      _results.push(sctx.fillText(ball.char, 0, 0));
     }
     return _results;
   };

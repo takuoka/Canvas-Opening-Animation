@@ -69,6 +69,8 @@ class Ball
 			this.x += this.vx
 			this.y += this.vy
 
+			this.rotate += this.vx
+
 			this.boundStrength *= this.boundReduction
 
 			return
@@ -183,6 +185,7 @@ startAnimation = ->
 
 drawBalls = ->
 	#全消し
+	sctx.restore()
 	sctx.fillStyle = "#000"
 	sctx.fillRect 0, 0, maxW, maxH
 
@@ -191,7 +194,6 @@ drawBalls = ->
 	sctx.textAlign = "center"
 	sctx.textBaseline = "middle"
 
-	sctx.save()
 	for ball in balls
 		sctx.restore()
 		sctx.beginPath()
@@ -201,14 +203,10 @@ drawBalls = ->
 		sctx.fill()
 
 		sctx.fillStyle = "white"
-		# if ball_move_type is "gather"
-			# sctx.translate ball.x + BALL_R, ball.y + BALL_R
-			# sctx.rotate ball.rotate * Math.PI / 180
-			# rad = ball.rotate * Math.PI / 180
-			# sctx.setTransform Math.cos(rad), Math.sin(rad), -Math.sin(rad), Math.cos(rad), 0, 0
-			# sctx.fillText ball.char, 0, 0
-		# else
-		sctx.fillText ball.char, ball.x, ball.y
+		sctx.save()
+		sctx.translate ball.x, ball.y
+		sctx.rotate ball.rotate * Math.PI / 180
+		sctx.fillText ball.char, 0, 0
 
 
 ball_move_type = "move"

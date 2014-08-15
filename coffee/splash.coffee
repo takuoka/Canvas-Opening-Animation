@@ -36,13 +36,14 @@ class Ball
 		@vx = 0
 		@vy = 0
 		@g = GRAVITY_NUM
-		@g = GRAVITY_NUM * 8 if window.isMobile
+		@g = GRAVITY_NUM * 70 if window.isMobile
 		@t = 0
 		@bottom = bottom
 		@color = HSVtoRGB (1 / BALL_NUM * ++ballCount), 0.3, 1# 色相　彩度　明るさ
 		@boundStrength = BOUND_STRENGTH_VERTICAL
 		@char = char
 		@boundReduction = 0.986
+		@boundReduction = 0.989 if window.isMobile
 		@rotate = 0
 
 		@move_gravity = ->
@@ -124,7 +125,7 @@ easeInCubic = (t, b, c, d) ->
 
 balls = []
 FPS = 1
-FPS = 30 is window.isMobile
+FPS = 1 is window.isMobile
 
 initAnimation = ->
 
@@ -149,7 +150,7 @@ initAnimation = ->
 	char = ['A','r','t','&','H','a','c','k']
 
 	addBallDelay = 50
-	addBallDelay = 25 if window.isMobile
+	addBallDelay = 300 if window.isMobile
 
 	addInterval = setInterval (->
 		balls.push new Ball x(addCount), startY, r, y(addCount), char[addCount]
@@ -167,15 +168,16 @@ initAnimation = ->
 	splashDelay = 420
 
 	if window.isMobile
-		gatherDelay = 3000 
-		ghaterDuration = 50
+		gatherDelay = 4000
+		ghaterDuration = 5
 		splashDelay = 700
 
 	setTimeout (->
 
-		x_ball = balls[3];
-		balls[3] = balls[7];
-		balls[7] = x_ball;
+		# & を前に出す
+		x_ball = balls[3]
+		balls[3] = balls[7]
+		balls[7] = x_ball
 
 		gatherBalls ghaterDuration
 		setTimeout (->
@@ -269,7 +271,7 @@ splashBalls = (isFall) ->
 	velocityRange = 30
 	if isFall
 		velocityRange = 10
-		velocityRange = 20 if window.isMobile
+		velocityRange = 400 if window.isMobile
 	one_deg = 360 / balls.length
 	one_deg = 360 / balls.length /2 if isFall
 	rand_rag = 10
@@ -280,7 +282,7 @@ splashBalls = (isFall) ->
 		ball.bottom = maxH * 99 if isFall
 		if isFall
 			ball.g = 1
-			ball.g = 40 if window.isMobile
+			ball.g = GRAVITY_NUM * 1 if window.isMobile
 		ball.boundStrength = BOUND_STRENGTH_VERTICAL
 		ball.boundReduction = 0.999
 		deg = one_deg * i * -1 + 180 * ((Math.random() * rand_rag) - rand_rag / 2)
@@ -292,11 +294,14 @@ splashBalls = (isFall) ->
 
 	if isFall
 		setTimeout (->
-			IS_END = true
+			setEND()
 		), 1500
 
 
 
+setEND = ->
+	IS_END = true
+	hide_loading();
 
 
 

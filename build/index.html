@@ -9,7 +9,7 @@
   </head>
   <body>
     <canvas id="splash"></canvas>
-    <div id="page">
+    <div id="page" style="display:none">
       <h1>my page</h1>
       <p>pagepageapwefaaaaaaaaaaaaaaaaaaa</p>
     </div>
@@ -44,5 +44,15 @@
      maxW = splashCanvas.width;
      maxH = splashCanvas.height;
     }
+    
+    
+    var hide_loading = function(callback) {
+     $("#page").css("display", "block");
+     $("#splash").fadeOut("slow", function(){
+      if(callback) callback();
+     });
+    }
+    
   </script>
+  <script src="lib/jquery-2.1.1.min.js"></script>
 </html>

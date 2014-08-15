@@ -12,7 +12,7 @@ html(lang="ja")
 
 		canvas#splash
 
-		#page
+		#page(style="display:none")
 			h1 my page
 			p pagepageapwefaaaaaaaaaaaaaaaaaaa
 
@@ -47,3 +47,13 @@ html(lang="ja")
 			maxW = splashCanvas.width;
 			maxH = splashCanvas.height;
 		}
+
+
+		var hide_loading = function(callback) {
+			$("#page").css("display", "block");
+			$("#splash").fadeOut("slow", function(){
+				if(callback) callback();
+			});
+		}
+
+	script(src='lib/jquery-2.1.1.min.js')

@@ -1,5 +1,5 @@
 (function() {
-  var BALL_FONT, BALL_NUM, BALL_R, BOUND_STRENGTH_HRIZONAL, BOUND_STRENGTH_VERTICAL, Ball, FONT_SIZE, FPS, GRAVITY_NUM, HSVtoRGB, IS_END, ball_move_type, balls, drawBalls, easeInCubic, fallBalls, gatherBalls, initAnimation, onEnterFrame, splashBalls, startAnimation;
+  var BALL_FONT, BALL_NUM, BALL_R, BOUND_STRENGTH_HRIZONAL, BOUND_STRENGTH_VERTICAL, Ball, FONT_SIZE, FPS, GRAVITY_NUM, HSVtoRGB, IS_END, ball_move_type, balls, drawBalls, easeInCubic, fallBalls, gatherBalls, initAnimation, onEnterFrame, setEND, splashBalls, startAnimation;
 
   console.log("splash.coffee");
 
@@ -40,7 +40,7 @@
       this.vy = 0;
       this.g = GRAVITY_NUM;
       if (window.isMobile) {
-        this.g = GRAVITY_NUM * 8;
+        this.g = GRAVITY_NUM * 70;
       }
       this.t = 0;
       this.bottom = bottom;
@@ -48,6 +48,9 @@
       this.boundStrength = BOUND_STRENGTH_VERTICAL;
       this.char = char;
       this.boundReduction = 0.986;
+      if (window.isMobile) {
+        this.boundReduction = 0.989;
+      }
       this.rotate = 0;
       this.move_gravity = function() {
         this.vy += this.g * this.t;
@@ -113,7 +116,7 @@
 
   FPS = 1;
 
-  FPS = 30 === window.isMobile;
+  FPS = 1 === window.isMobile;
 
   initAnimation = function() {
     var addBallDelay, addCount, addInterval, cell_horizontal, cell_size, char, gatherDelay, ghaterDuration, margin_horizontal, r, splashDelay, startY, x, y;
@@ -152,7 +155,7 @@
     char = ['A', 'r', 't', '&', 'H', 'a', 'c', 'k'];
     addBallDelay = 50;
     if (window.isMobile) {
-      addBallDelay = 25;
+      addBallDelay = 300;
     }
     addInterval = setInterval((function() {
       balls.push(new Ball(x(addCount), startY, r, y(addCount), char[addCount]));
@@ -167,8 +170,8 @@
     ghaterDuration = 70;
     splashDelay = 420;
     if (window.isMobile) {
-      gatherDelay = 3000;
-      ghaterDuration = 50;
+      gatherDelay = 4000;
+      ghaterDuration = 5;
       splashDelay = 700;
     }
     return setTimeout((function() {
@@ -271,7 +274,7 @@
     if (isFall) {
       velocityRange = 10;
       if (window.isMobile) {
-        velocityRange = 20;
+        velocityRange = 400;
       }
     }
     one_deg = 360 / balls.length;
@@ -291,7 +294,7 @@
       if (isFall) {
         ball.g = 1;
         if (window.isMobile) {
-          ball.g = 40;
+          ball.g = GRAVITY_NUM * 1;
         }
       }
       ball.boundStrength = BOUND_STRENGTH_VERTICAL;
@@ -304,9 +307,14 @@
     ball_move_type = "move";
     if (isFall) {
       return setTimeout((function() {
-        return IS_END = true;
+        return setEND();
       }), 1500);
     }
+  };
+
+  setEND = function() {
+    IS_END = true;
+    return hide_loading();
   };
 
   HSVtoRGB = function(h, s, v) {

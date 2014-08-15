@@ -36,9 +36,10 @@ class Ball
 		@vx = 0
 		@vy = 0
 		@g = GRAVITY_NUM
+		@g = GRAVITY_NUM * 8 if window.isMobile
 		@t = 0
 		@bottom = bottom
-		@color = HSVtoRGB (1 / BALL_NUM * ++ballCount), 0.7, 1
+		@color = HSVtoRGB (1 / BALL_NUM * ++ballCount), 0.3, 1# 色相　彩度　明るさ
 		@boundStrength = BOUND_STRENGTH_VERTICAL
 		@char = char
 		@boundReduction = 0.986
@@ -46,32 +47,32 @@ class Ball
 
 		@move_gravity = ->
 
-			this.vy += this.g * this.t
+			@vy += @g * @t
 
 			#縦バウンド
-			if this.vy >= 0
-				if this.y >= this.bottom - this.r
-					this.vy *= (-this.boundStrength)
-					this.t = 0
-			# else
-			# 	if this.y <= 0
-			# 		this.vy *= (-this.boundStrength)
-			# 		this.t = 0
+			if @vy >= 0
+				if @y >= @bottom - @r
+					@vy *= (-@boundStrength)
+					@t = 0
+			else
+				if @y <= 0
+					@vy *= (-@boundStrength)
+					@t = 0
 
 			# 横バウンド
-			if this.vx >= 0
-				this.vx *= (-this.boundStrength) if this.x >= maxW - this.r
+			if @vx >= 0
+				@vx *= (-@boundStrength) if @x >= maxW - @r
 			else
-				this.vx *= (-this.boundStrength) if this.x <= 0 + this.r
+				@vx *= (-@boundStrength) if @x <= 0 + @r
 
-			this.t += 1 / 1000
+			@t += 1 / 1000
 
-			this.x += this.vx
-			this.y += this.vy
+			@x += @vx
+			@y += @vy
 
-			this.rotate += this.vx
+			@rotate += @vx
 
-			this.boundStrength *= this.boundReduction
+			@boundStrength *= @boundReduction
 
 			return
 
@@ -84,26 +85,20 @@ class Ball
 		y_change_for_gather = null
 		gather_duration = null
 		@initGather = (duration) ->
-			this.t = 0
-			x_beforGather = this.x
-			y_beforGather = this.y
-			x_change_for_gather = maxW / 2 - this.x
-			y_change_for_gather = maxH / 2 - this.y
-
+			@t = 0
+			x_beforGather = @x
+			y_beforGather = @y
+			x_change_for_gather = maxW / 2 - @x
+			y_change_for_gather = maxH / 2 - @y
 			gather_duration = duration
-
-			console.log "init gather"
-			console.log x_beforGather
-			console.log x_change_for_gather
 
 
 		@gather = ()->
-			console.log "ghater"
-			this.t += 1
-			if this.x isnt maxW / 2 or this.y isnt maxH / 2
-				this.x = easeInCubic this.t, x_beforGather, x_change_for_gather, gather_duration
-				this.y = easeInCubic this.t, y_beforGather, y_change_for_gather, gather_duration
-				this.rotate = easeInCubic this.t, 0, 360, gather_duration
+			@t += 1
+			if @x isnt maxW / 2 or @y isnt maxH / 2
+				@x = easeInCubic @t, x_beforGather, x_change_for_gather, gather_duration
+				@y = easeInCubic @t, y_beforGather, y_change_for_gather, gather_duration
+				@rotate = easeInCubic @t, 0, 360, gather_duration
 
 
 
@@ -129,6 +124,7 @@ easeInCubic = (t, b, c, d) ->
 
 balls = []
 FPS = 1
+FPS = 30 is window.isMobile
 
 initAnimation = ->
 
@@ -150,23 +146,42 @@ initAnimation = ->
 		return maxH / 2 + gap
 	r = cell_size / 2 * 0.7
 	startY = -100
-	char = ['A','r','t','☓','H','a','c','k']
+	char = ['A','r','t','&','H','a','c','k']
+
+	addBallDelay = 50
+	addBallDelay = 25 if window.isMobile
 
 	addInterval = setInterval (->
 		balls.push new Ball x(addCount), startY, r, y(addCount), char[addCount]
 		clearInterval addInterval if ++addCount is BALL_NUM
-	), 50
+	), addBallDelay
 
 
 	BALL_R = r
-	FONT_SIZE = BALL_R * 2 * 0.6 + "px"
-	BALL_FONT = FONT_SIZE + " 'Helvetica Neue UltraLight'"
+	FONT_SIZE = BALL_R * 2 * 1.2 + "px"
+	BALL_FONT = FONT_SIZE + " HelveticaNeue-UltraLight,Quicksand"
 
-	ghaterDuration = 100
+
+	gatherDelay = 1500
+	ghaterDuration = 70
+	splashDelay = 420
+
+	if window.isMobile
+		gatherDelay = 3000 
+		ghaterDuration = 50
+		splashDelay = 700
+
 	setTimeout (->
+
+		x_ball = balls[3];
+		balls[3] = balls[7];
+		balls[7] = x_ball;
+
 		gatherBalls ghaterDuration
-		setTimeout splashBalls, 700
-	), 1000
+		setTimeout (->
+			splashBalls true
+		), splashDelay
+	), gatherDelay
 
 startAnimation = ->
 	onEnterFrame()
@@ -202,16 +217,17 @@ drawBalls = ->
 		sctx.closePath()
 		sctx.fill()
 
-		sctx.fillStyle = "white"
+		sctx.fillStyle = "black"
 		sctx.save()
 		sctx.translate ball.x, ball.y
 		sctx.rotate ball.rotate * Math.PI / 180
 		sctx.fillText ball.char, 0, 0
 
+IS_END = false
 
 ball_move_type = "move"
 onEnterFrame = ->
-	setTimeout onEnterFrame, FPS
+	setTimeout onEnterFrame, FPS unless IS_END
 	for ball in balls
 		if ball_move_type is "move" then ball.move_gravity()
 		if ball_move_type is "gather" then ball.gather()
@@ -241,7 +257,7 @@ fallBalls = ->
 
 
 
-splashBalls = ->
+splashBalls = (isFall) ->
 	console.log "splashBalls"
 
 	splashVelocity = (deg) ->
@@ -250,20 +266,34 @@ splashBalls = ->
 		v.y = Math.sin(deg)
 		return v
 
-	velocityRange = 50
+	velocityRange = 30
+	if isFall
+		velocityRange = 10
+		velocityRange = 20 if window.isMobile
 	one_deg = 360 / balls.length
+	one_deg = 360 / balls.length /2 if isFall
+	rand_rag = 10
 
 	for ball,i in balls
 		ball.t = 0
-		ball.bottom = maxH - ball.r 
+		ball.bottom = maxH - ball.r unless isFall
+		ball.bottom = maxH * 99 if isFall
+		if isFall
+			ball.g = 1
+			ball.g = 40 if window.isMobile
 		ball.boundStrength = BOUND_STRENGTH_VERTICAL
 		ball.boundReduction = 0.999
-		deg = one_deg * i * -1 + 180
+		deg = one_deg * i * -1 + 180 * ((Math.random() * rand_rag) - rand_rag / 2)
 		v = splashVelocity deg
 		ball.vx = v.x * velocityRange
 		ball.vy = v.y * velocityRange
 
 	ball_move_type = "move"
+
+	if isFall
+		setTimeout (->
+			IS_END = true
+		), 1500
 
 
 

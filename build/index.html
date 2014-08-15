@@ -18,6 +18,14 @@
   <script>
     console.log("entry point");
     
+    // iPhone/iPad/iPod、Androidの場合は振り分けを判断
+    if ( navigator.userAgent.indexOf('iPhone') > 0
+     || navigator.userAgent.indexOf('iPod') > 0
+     || (navigator.userAgent.indexOf('Android') > 0 && navigator.userAgent.indexOf('Mobile') > 0) )
+    {
+     window.isMobile = true;
+    }
+    
     var splashCanvas, sctx, maxW, maxH;
     
     window.onload = function() {

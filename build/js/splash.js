@@ -1,5 +1,5 @@
 (function() {
-  var BALL_FONT, BALL_NUM, BALL_R, BOUND_STRENGTH_HRIZONAL, BOUND_STRENGTH_VERTICAL, Ball, FONT_SIZE, FPS, GRAVITY_NUM, HSVtoRGB, ball_move_type, balls, drawBalls, easeInCubic, fallBalls, gatherBalls, initAnimation, onEnterFrame, splashBalls, startAnimation;
+  var BALL_FONT, BALL_NUM, BALL_R, BOUND_STRENGTH_HRIZONAL, BOUND_STRENGTH_VERTICAL, Ball, FONT_SIZE, FPS, GRAVITY_NUM, HSVtoRGB, IS_END, ball_move_type, balls, drawBalls, easeInCubic, fallBalls, gatherBalls, initAnimation, onEnterFrame, splashBalls, startAnimation;
 
   console.log("splash.coffee");
 
@@ -39,9 +39,12 @@
       this.vx = 0;
       this.vy = 0;
       this.g = GRAVITY_NUM;
+      if (window.isMobile) {
+        this.g = GRAVITY_NUM * 8;
+      }
       this.t = 0;
       this.bottom = bottom;
-      this.color = HSVtoRGB(1 / BALL_NUM * ++ballCount, 0.7, 1);
+      this.color = HSVtoRGB(1 / BALL_NUM * ++ballCount, 0.3, 1);
       this.boundStrength = BOUND_STRENGTH_VERTICAL;
       this.char = char;
       this.boundReduction = 0.986;
@@ -50,6 +53,11 @@
         this.vy += this.g * this.t;
         if (this.vy >= 0) {
           if (this.y >= this.bottom - this.r) {
+            this.vy *= -this.boundStrength;
+            this.t = 0;
+          }
+        } else {
+          if (this.y <= 0) {
             this.vy *= -this.boundStrength;
             this.t = 0;
           }
@@ -80,13 +88,9 @@
         y_beforGather = this.y;
         x_change_for_gather = maxW / 2 - this.x;
         y_change_for_gather = maxH / 2 - this.y;
-        gather_duration = duration;
-        console.log("init gather");
-        console.log(x_beforGather);
-        return console.log(x_change_for_gather);
+        return gather_duration = duration;
       };
       this.gather = function() {
-        console.log("ghater");
         this.t += 1;
         if (this.x !== maxW / 2 || this.y !== maxH / 2) {
           this.x = easeInCubic(this.t, x_beforGather, x_change_for_gather, gather_duration);
@@ -109,8 +113,10 @@
 
   FPS = 1;
 
+  FPS = 30 === window.isMobile;
+
   initAnimation = function() {
-    var addCount, addInterval, cell_horizontal, cell_size, char, ghaterDuration, margin_horizontal, r, startY, x, y;
+    var addBallDelay, addCount, addInterval, cell_horizontal, cell_size, char, gatherDelay, ghaterDuration, margin_horizontal, r, splashDelay, startY, x, y;
     addCount = 0;
     margin_horizontal = 30;
     cell_horizontal = 5;
@@ -143,21 +149,38 @@
     };
     r = cell_size / 2 * 0.7;
     startY = -100;
-    char = ['A', 'r', 't', '☓', 'H', 'a', 'c', 'k'];
+    char = ['A', 'r', 't', '&', 'H', 'a', 'c', 'k'];
+    addBallDelay = 50;
+    if (window.isMobile) {
+      addBallDelay = 25;
+    }
     addInterval = setInterval((function() {
       balls.push(new Ball(x(addCount), startY, r, y(addCount), char[addCount]));
       if (++addCount === BALL_NUM) {
         return clearInterval(addInterval);
       }
-    }), 50);
+    }), addBallDelay);
     BALL_R = r;
-    FONT_SIZE = BALL_R * 2 * 0.6 + "px";
-    BALL_FONT = FONT_SIZE + " 'Helvetica Neue UltraLight'";
-    ghaterDuration = 100;
+    FONT_SIZE = BALL_R * 2 * 1.2 + "px";
+    BALL_FONT = FONT_SIZE + " HelveticaNeue-UltraLight,Quicksand";
+    gatherDelay = 1500;
+    ghaterDuration = 70;
+    splashDelay = 420;
+    if (window.isMobile) {
+      gatherDelay = 3000;
+      ghaterDuration = 50;
+      splashDelay = 700;
+    }
     return setTimeout((function() {
+      var x_ball;
+      x_ball = balls[3];
+      balls[3] = balls[7];
+      balls[7] = x_ball;
       gatherBalls(ghaterDuration);
-      return setTimeout(splashBalls, 700);
-    }), 1000);
+      return setTimeout((function() {
+        return splashBalls(true);
+      }), splashDelay);
+    }), gatherDelay);
   };
 
   startAnimation = function() {
@@ -182,7 +205,7 @@
       sctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
       sctx.closePath();
       sctx.fill();
-      sctx.fillStyle = "white";
+      sctx.fillStyle = "black";
       sctx.save();
       sctx.translate(ball.x, ball.y);
       sctx.rotate(ball.rotate * Math.PI / 180);
@@ -191,11 +214,15 @@
     return _results;
   };
 
+  IS_END = false;
+
   ball_move_type = "move";
 
   onEnterFrame = function() {
     var ball, _i, _len;
-    setTimeout(onEnterFrame, FPS);
+    if (!IS_END) {
+      setTimeout(onEnterFrame, FPS);
+    }
     for (_i = 0, _len = balls.length; _i < _len; _i++) {
       ball = balls[_i];
       if (ball_move_type === "move") {
@@ -230,8 +257,8 @@
     return _results;
   };
 
-  splashBalls = function() {
-    var ball, deg, i, one_deg, splashVelocity, v, velocityRange, _i, _len;
+  splashBalls = function(isFall) {
+    var ball, deg, i, one_deg, rand_rag, splashVelocity, v, velocityRange, _i, _len;
     console.log("splashBalls");
     splashVelocity = function(deg) {
       var v;
@@ -240,20 +267,46 @@
       v.y = Math.sin(deg);
       return v;
     };
-    velocityRange = 50;
+    velocityRange = 30;
+    if (isFall) {
+      velocityRange = 10;
+      if (window.isMobile) {
+        velocityRange = 20;
+      }
+    }
     one_deg = 360 / balls.length;
+    if (isFall) {
+      one_deg = 360 / balls.length / 2;
+    }
+    rand_rag = 10;
     for (i = _i = 0, _len = balls.length; _i < _len; i = ++_i) {
       ball = balls[i];
       ball.t = 0;
-      ball.bottom = maxH - ball.r;
+      if (!isFall) {
+        ball.bottom = maxH - ball.r;
+      }
+      if (isFall) {
+        ball.bottom = maxH * 99;
+      }
+      if (isFall) {
+        ball.g = 1;
+        if (window.isMobile) {
+          ball.g = 40;
+        }
+      }
       ball.boundStrength = BOUND_STRENGTH_VERTICAL;
       ball.boundReduction = 0.999;
-      deg = one_deg * i * -1 + 180;
+      deg = one_deg * i * -1 + 180 * ((Math.random() * rand_rag) - rand_rag / 2);
       v = splashVelocity(deg);
       ball.vx = v.x * velocityRange;
       ball.vy = v.y * velocityRange;
     }
-    return ball_move_type = "move";
+    ball_move_type = "move";
+    if (isFall) {
+      return setTimeout((function() {
+        return IS_END = true;
+      }), 1500);
+    }
   };
 
   HSVtoRGB = function(h, s, v) {

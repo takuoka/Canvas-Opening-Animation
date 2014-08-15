@@ -1,6 +1,8 @@
 
 console.log "splash.coffee"
 
+
+
 window.START_SPLASH = ->
 	console.log "start splash"
 	console.log sctx
@@ -10,24 +12,37 @@ window.START_SPLASH = ->
 	startAnimation()
 
 
+
+
+
+
+
 BOUND_STRENGTH_VERTICAL = 0.47
 BOUND_STRENGTH_HRIZONAL = 0.8
+GRAVITY_NUM = 9#9.8
+BALL_NUM = 8
 
+BALL_R = null
+FONT_SIZE = null
+BALL_FONT = null
 
 class Ball
-	constructor: (x, y, vx, vy) ->
-		@r = 20
+	ballCount = 0
+
+	constructor: (x, y, r, bottom, char) ->
+		@r = r
 		@x = x
 		@y = y
-		@vx = vx
-		@vy = vy
-		@g = 9.8
+		@vx = 0
+		@vy = 0
+		@g = GRAVITY_NUM
 		@t = 0
-		@e = 0.8
-
-		console.log this.x + ", " + this.y
-
-		@color = HSVtoRGB (Math.random()), 0.7, 1
+		@bottom = bottom
+		@color = HSVtoRGB (1 / BALL_NUM * ++ballCount), 0.7, 1
+		@boundStrength = BOUND_STRENGTH_VERTICAL
+		@char = char
+		@boundReduction = 0.986
+		@rotate = 0
 
 		@move_gravity = ->
 
@@ -35,65 +50,242 @@ class Ball
 
 			#縦バウンド
 			if this.vy >= 0
-				if this.y >= maxH - this.r
-					this.vy *= (-BOUND_STRENGTH_VERTICAL)
+				if this.y >= this.bottom - this.r
+					this.vy *= (-this.boundStrength)
 					this.t = 0
-			else
-				if this.y <= 0
-					this.vy *= (-BOUND_STRENGTH_VERTICAL)
-					this.t = 0
+			# else
+			# 	if this.y <= 0
+			# 		this.vy *= (-this.boundStrength)
+			# 		this.t = 0
 
-
-			#横バウンド
+			# 横バウンド
 			if this.vx >= 0
-				this.vx *= (-BOUND_STRENGTH_HRIZONAL)  if this.x >= maxW - this.r
+				this.vx *= (-this.boundStrength) if this.x >= maxW - this.r
 			else
-				this.vx *= (-BOUND_STRENGTH_HRIZONAL)  if this.x <= 0 + this.r
+				this.vx *= (-this.boundStrength) if this.x <= 0 + this.r
 
 			this.t += 1 / 1000
 
 			this.x += this.vx
 			this.y += this.vy
 
+			this.boundStrength *= this.boundReduction
+
 			return
 
 
 
 
+		x_beforGather = null
+		y_beforGather = null
+		x_change_for_gather = null
+		y_change_for_gather = null
+		gather_duration = null
+		@initGather = (duration) ->
+			this.t = 0
+			x_beforGather = this.x
+			y_beforGather = this.y
+			x_change_for_gather = maxW / 2 - this.x
+			y_change_for_gather = maxH / 2 - this.y
+
+			gather_duration = duration
+
+			console.log "init gather"
+			console.log x_beforGather
+			console.log x_change_for_gather
+
+
+		@gather = ()->
+			console.log "ghater"
+			this.t += 1
+			if this.x isnt maxW / 2 or this.y isnt maxH / 2
+				this.x = easeInCubic this.t, x_beforGather, x_change_for_gather, gather_duration
+				this.y = easeInCubic this.t, y_beforGather, y_change_for_gather, gather_duration
+				this.rotate = easeInCubic this.t, 0, 360, gather_duration
+
+
+
+easeInCubic = (t, b, c, d) ->
+   t /= d
+   return c * t * t * t + b
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------
+# アニメ−ションのイニシャライズ
+#------------------------------------
+
 balls = []
 FPS = 1
 
 initAnimation = ->
-	balls.push new Ball 10, 200, 30, 40
-	balls.push new Ball 300, 30, -20, 10
-	balls.push new Ball 300, 30, 2, 110
-	balls.push new Ball 300, 30, -120, 2
-	balls.push new Ball 300, 30, 30, 20
-	balls.push new Ball 300, 30, -50, 10
+
+	addCount = 0
+
+	margin_horizontal = 30
+	cell_horizontal = 5
+	cell_size = ((maxW - margin_horizontal * 2) / cell_horizontal) 
+
+	x = (n) ->
+		if n <= 2 then pos = n
+		if n is 3 then pos = n - 1.5
+		if n >= 4 then pos = n - 3
+		margin_horizontal + (cell_size * pos) + (cell_size / 2)
+	y = (n) ->
+		if n <= 2 then gap = r * -2.5
+		if n is 3 then gap = 0
+		if n >= 4 then gap = r * 2.5
+		return maxH / 2 + gap
+	r = cell_size / 2 * 0.7
+	startY = -100
+	char = ['A','r','t','☓','H','a','c','k']
+
+	addInterval = setInterval (->
+		balls.push new Ball x(addCount), startY, r, y(addCount), char[addCount]
+		clearInterval addInterval if ++addCount is BALL_NUM
+	), 50
+
+
+	BALL_R = r
+	FONT_SIZE = BALL_R * 2 * 0.6 + "px"
+	BALL_FONT = FONT_SIZE + " 'Helvetica Neue UltraLight'"
+
+	ghaterDuration = 100
+	setTimeout (->
+		gatherBalls ghaterDuration
+		setTimeout splashBalls, 700
+	), 1000
+
 startAnimation = ->
 	onEnterFrame()
 
 
 
+
+
+
+
+
+#------------------------------------
+# 描画
+#------------------------------------
+
+
 drawBalls = ->
 	#全消し
-	sctx.fillStyle = "#FFF"
+	sctx.fillStyle = "#000"
 	sctx.fillRect 0, 0, maxW, maxH
 
+	sctx.font = BALL_FONT
+	sctx.fillStyle = "white"
+	sctx.textAlign = "center"
+	sctx.textBaseline = "middle"
+
+	sctx.save()
 	for ball in balls
+		sctx.restore()
 		sctx.beginPath()
 		sctx.fillStyle = "rgba(" + ball.color.r + "," + ball.color.g + "," + ball.color.b + ",1)"
 		sctx.arc ball.x, ball.y, ball.r, 0, Math.PI * 2
 		sctx.closePath()
 		sctx.fill()
 
+		sctx.fillStyle = "white"
+		# if ball_move_type is "gather"
+			# sctx.translate ball.x + BALL_R, ball.y + BALL_R
+			# sctx.rotate ball.rotate * Math.PI / 180
+			# rad = ball.rotate * Math.PI / 180
+			# sctx.setTransform Math.cos(rad), Math.sin(rad), -Math.sin(rad), Math.cos(rad), 0, 0
+			# sctx.fillText ball.char, 0, 0
+		# else
+		sctx.fillText ball.char, ball.x, ball.y
 
 
-
+ball_move_type = "move"
 onEnterFrame = ->
 	setTimeout onEnterFrame, FPS
-	ball.move_gravity() for ball in balls
+	for ball in balls
+		if ball_move_type is "move" then ball.move_gravity()
+		if ball_move_type is "gather" then ball.gather()
 	drawBalls()
+
+
+
+gatherBalls = (duration)->
+	for ball in balls
+		ball.initGather(duration)
+	ball_move_type = "gather"
+
+
+
+
+
+
+
+fallBalls = ->
+	ball_move_type = "move"
+	for ball in balls
+		ball.bottom = maxH - ball.r 
+		ball.boundStrength = BOUND_STRENGTH_VERTICAL
+		ball.boundReduction = 0.99
+
+
+
+
+
+splashBalls = ->
+	console.log "splashBalls"
+
+	splashVelocity = (deg) ->
+		v = {}
+		v.x = Math.cos(deg)
+		v.y = Math.sin(deg)
+		return v
+
+	velocityRange = 50
+	one_deg = 360 / balls.length
+
+	for ball,i in balls
+		ball.t = 0
+		ball.bottom = maxH - ball.r 
+		ball.boundStrength = BOUND_STRENGTH_VERTICAL
+		ball.boundReduction = 0.999
+		deg = one_deg * i * -1 + 180
+		v = splashVelocity deg
+		ball.vx = v.x * velocityRange
+		ball.vy = v.y * velocityRange
+
+	ball_move_type = "move"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

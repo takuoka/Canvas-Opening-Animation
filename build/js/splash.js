@@ -1,5 +1,5 @@
 (function() {
-  var BOUND_STRENGTH_HRIZONAL, BOUND_STRENGTH_VERTICAL, Ball, FPS, HSVtoRGB, balls, drawBalls, initAnimation, onEnterFrame, startAnimation;
+  var BALL_FONT, BALL_NUM, BALL_R, BOUND_STRENGTH_HRIZONAL, BOUND_STRENGTH_VERTICAL, Ball, FONT_SIZE, FPS, GRAVITY_NUM, HSVtoRGB, ball_move_type, balls, drawBalls, easeInCubic, fallBalls, gatherBalls, initAnimation, onEnterFrame, splashBalls, startAnimation;
 
   console.log("splash.coffee");
 
@@ -16,43 +16,82 @@
 
   BOUND_STRENGTH_HRIZONAL = 0.8;
 
+  GRAVITY_NUM = 9;
+
+  BALL_NUM = 8;
+
+  BALL_R = null;
+
+  FONT_SIZE = null;
+
+  BALL_FONT = null;
+
   Ball = (function() {
-    function Ball(x, y, vx, vy) {
-      this.r = 20;
+    var ballCount;
+
+    ballCount = 0;
+
+    function Ball(x, y, r, bottom, char) {
+      var gather_duration, x_beforGather, x_change_for_gather, y_beforGather, y_change_for_gather;
+      this.r = r;
       this.x = x;
       this.y = y;
-      this.vx = vx;
-      this.vy = vy;
-      this.g = 9.8;
+      this.vx = 0;
+      this.vy = 0;
+      this.g = GRAVITY_NUM;
       this.t = 0;
-      this.e = 0.8;
-      console.log(this.x + ", " + this.y);
-      this.color = HSVtoRGB(Math.random(), 0.7, 1);
+      this.bottom = bottom;
+      this.color = HSVtoRGB(1 / BALL_NUM * ++ballCount, 0.7, 1);
+      this.boundStrength = BOUND_STRENGTH_VERTICAL;
+      this.char = char;
+      this.boundReduction = 0.986;
+      this.rotate = 0;
       this.move_gravity = function() {
         this.vy += this.g * this.t;
         if (this.vy >= 0) {
-          if (this.y >= maxH - this.r) {
-            this.vy *= -BOUND_STRENGTH_VERTICAL;
-            this.t = 0;
-          }
-        } else {
-          if (this.y <= 0) {
-            this.vy *= -BOUND_STRENGTH_VERTICAL;
+          if (this.y >= this.bottom - this.r) {
+            this.vy *= -this.boundStrength;
             this.t = 0;
           }
         }
         if (this.vx >= 0) {
           if (this.x >= maxW - this.r) {
-            this.vx *= -BOUND_STRENGTH_HRIZONAL;
+            this.vx *= -this.boundStrength;
           }
         } else {
           if (this.x <= 0 + this.r) {
-            this.vx *= -BOUND_STRENGTH_HRIZONAL;
+            this.vx *= -this.boundStrength;
           }
         }
         this.t += 1 / 1000;
         this.x += this.vx;
         this.y += this.vy;
+        this.boundStrength *= this.boundReduction;
+      };
+      x_beforGather = null;
+      y_beforGather = null;
+      x_change_for_gather = null;
+      y_change_for_gather = null;
+      gather_duration = null;
+      this.initGather = function(duration) {
+        this.t = 0;
+        x_beforGather = this.x;
+        y_beforGather = this.y;
+        x_change_for_gather = maxW / 2 - this.x;
+        y_change_for_gather = maxH / 2 - this.y;
+        gather_duration = duration;
+        console.log("init gather");
+        console.log(x_beforGather);
+        return console.log(x_change_for_gather);
+      };
+      this.gather = function() {
+        console.log("ghater");
+        this.t += 1;
+        if (this.x !== maxW / 2 || this.y !== maxH / 2) {
+          this.x = easeInCubic(this.t, x_beforGather, x_change_for_gather, gather_duration);
+          this.y = easeInCubic(this.t, y_beforGather, y_change_for_gather, gather_duration);
+          return this.rotate = easeInCubic(this.t, 0, 360, gather_duration);
+        }
       };
     }
 
@@ -60,17 +99,64 @@
 
   })();
 
+  easeInCubic = function(t, b, c, d) {
+    t /= d;
+    return c * t * t * t + b;
+  };
+
   balls = [];
 
   FPS = 1;
 
   initAnimation = function() {
-    balls.push(new Ball(10, 200, 30, 40));
-    balls.push(new Ball(300, 30, -20, 10));
-    balls.push(new Ball(300, 30, 2, 110));
-    balls.push(new Ball(300, 30, -120, 2));
-    balls.push(new Ball(300, 30, 30, 20));
-    return balls.push(new Ball(300, 30, -50, 10));
+    var addCount, addInterval, cell_horizontal, cell_size, char, ghaterDuration, margin_horizontal, r, startY, x, y;
+    addCount = 0;
+    margin_horizontal = 30;
+    cell_horizontal = 5;
+    cell_size = (maxW - margin_horizontal * 2) / cell_horizontal;
+    x = function(n) {
+      var pos;
+      if (n <= 2) {
+        pos = n;
+      }
+      if (n === 3) {
+        pos = n - 1.5;
+      }
+      if (n >= 4) {
+        pos = n - 3;
+      }
+      return margin_horizontal + (cell_size * pos) + (cell_size / 2);
+    };
+    y = function(n) {
+      var gap;
+      if (n <= 2) {
+        gap = r * -2.5;
+      }
+      if (n === 3) {
+        gap = 0;
+      }
+      if (n >= 4) {
+        gap = r * 2.5;
+      }
+      return maxH / 2 + gap;
+    };
+    r = cell_size / 2 * 0.7;
+    startY = -100;
+    char = ['A', 'r', 't', '☓', 'H', 'a', 'c', 'k'];
+    addInterval = setInterval((function() {
+      balls.push(new Ball(x(addCount), startY, r, y(addCount), char[addCount]));
+      if (++addCount === BALL_NUM) {
+        return clearInterval(addInterval);
+      }
+    }), 50);
+    BALL_R = r;
+    FONT_SIZE = BALL_R * 2 * 0.6 + "px";
+    BALL_FONT = FONT_SIZE + " 'Helvetica Neue UltraLight'";
+    ghaterDuration = 100;
+    return setTimeout((function() {
+      gatherBalls(ghaterDuration);
+      return setTimeout(splashBalls, 700);
+    }), 1000);
   };
 
   startAnimation = function() {
@@ -79,28 +165,91 @@
 
   drawBalls = function() {
     var ball, _i, _len, _results;
-    sctx.fillStyle = "#FFF";
+    sctx.fillStyle = "#000";
     sctx.fillRect(0, 0, maxW, maxH);
+    sctx.font = BALL_FONT;
+    sctx.fillStyle = "white";
+    sctx.textAlign = "center";
+    sctx.textBaseline = "middle";
+    sctx.save();
     _results = [];
     for (_i = 0, _len = balls.length; _i < _len; _i++) {
       ball = balls[_i];
+      sctx.restore();
       sctx.beginPath();
       sctx.fillStyle = "rgba(" + ball.color.r + "," + ball.color.g + "," + ball.color.b + ",1)";
       sctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
       sctx.closePath();
-      _results.push(sctx.fill());
+      sctx.fill();
+      sctx.fillStyle = "white";
+      _results.push(sctx.fillText(ball.char, ball.x, ball.y));
     }
     return _results;
   };
+
+  ball_move_type = "move";
 
   onEnterFrame = function() {
     var ball, _i, _len;
     setTimeout(onEnterFrame, FPS);
     for (_i = 0, _len = balls.length; _i < _len; _i++) {
       ball = balls[_i];
-      ball.move_gravity();
+      if (ball_move_type === "move") {
+        ball.move_gravity();
+      }
+      if (ball_move_type === "gather") {
+        ball.gather();
+      }
     }
     return drawBalls();
+  };
+
+  gatherBalls = function(duration) {
+    var ball, _i, _len;
+    for (_i = 0, _len = balls.length; _i < _len; _i++) {
+      ball = balls[_i];
+      ball.initGather(duration);
+    }
+    return ball_move_type = "gather";
+  };
+
+  fallBalls = function() {
+    var ball, _i, _len, _results;
+    ball_move_type = "move";
+    _results = [];
+    for (_i = 0, _len = balls.length; _i < _len; _i++) {
+      ball = balls[_i];
+      ball.bottom = maxH - ball.r;
+      ball.boundStrength = BOUND_STRENGTH_VERTICAL;
+      _results.push(ball.boundReduction = 0.99);
+    }
+    return _results;
+  };
+
+  splashBalls = function() {
+    var ball, deg, i, one_deg, splashVelocity, v, velocityRange, _i, _len;
+    console.log("splashBalls");
+    splashVelocity = function(deg) {
+      var v;
+      v = {};
+      v.x = Math.cos(deg);
+      v.y = Math.sin(deg);
+      return v;
+    };
+    velocityRange = 50;
+    one_deg = 360 / balls.length;
+    for (i = _i = 0, _len = balls.length; _i < _len; i = ++_i) {
+      ball = balls[i];
+      ball.t = 0;
+      ball.bottom = maxH - ball.r;
+      ball.boundStrength = BOUND_STRENGTH_VERTICAL;
+      ball.boundReduction = 0.999;
+      deg = one_deg * i * -1 + 180;
+      v = splashVelocity(deg);
+      ball.vx = v.x * velocityRange;
+      ball.vy = v.y * velocityRange;
+    }
+    return ball_move_type = "move";
   };
 
   HSVtoRGB = function(h, s, v) {

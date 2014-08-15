@@ -63,7 +63,7 @@ module.exports = (grunt) ->
                     port: 35729
             jade: (path) -> ['newer:jade']
             coffee: (path) -> ['newer:coffee']
-            sass: (path) -> ['newer:compass']
+            sass: (path) -> ['compass']
 
     grunt.initConfig conf
 

@@ -1,10 +1,10 @@
 /* line 2, ../../sass/index.sass */
 body {
-  border: 1px solid red;
+  background-color: cyan;
 }
 
-/* line 5, ../../sass/index.sass */
+/* line 6, ../../sass/index.sass */
 canvas#splash {
   position: fixed;
-  border: 1px solid blue;
+  top: 0;
 }

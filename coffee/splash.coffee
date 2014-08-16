@@ -36,14 +36,14 @@ class Ball
 		@vx = 0
 		@vy = 0
 		@g = GRAVITY_NUM
-		@g = GRAVITY_NUM * 70 if window.isMobile
+		@g = GRAVITY_NUM * 300 if window.isMobile
 		@t = 0
 		@bottom = bottom
 		@color = HSVtoRGB (1 / BALL_NUM * ++ballCount), 0.3, 1# 色相　彩度　明るさ
 		@boundStrength = BOUND_STRENGTH_VERTICAL
 		@char = char
 		@boundReduction = 0.986
-		@boundReduction = 0.989 if window.isMobile
+		@boundReduction = 0.96 if window.isMobile
 		@rotate = 0
 
 		@move_gravity = ->
@@ -131,7 +131,7 @@ initAnimation = ->
 
 	addCount = 0
 
-	margin_horizontal = 30
+	margin_horizontal = maxW / 10
 	cell_horizontal = 5
 	cell_size = ((maxW - margin_horizontal * 2) / cell_horizontal) 
 
@@ -141,16 +141,16 @@ initAnimation = ->
 		if n >= 4 then pos = n - 3
 		margin_horizontal + (cell_size * pos) + (cell_size / 2)
 	y = (n) ->
-		if n <= 2 then gap = r * -2.5
+		if n <= 2 then gap = r * -3
 		if n is 3 then gap = 0
-		if n >= 4 then gap = r * 2.5
+		if n >= 4 then gap = r * 3
 		return maxH / 2 + gap
 	r = cell_size / 2 * 0.7
 	startY = -100
 	char = ['A','r','t','&','H','a','c','k']
 
 	addBallDelay = 50
-	addBallDelay = 300 if window.isMobile
+	addBallDelay = 100 if window.isMobile
 
 	addInterval = setInterval (->
 		balls.push new Ball x(addCount), startY, r, y(addCount), char[addCount]
@@ -168,9 +168,9 @@ initAnimation = ->
 	splashDelay = 420
 
 	if window.isMobile
-		gatherDelay = 4000
-		ghaterDuration = 5
-		splashDelay = 700
+		gatherDelay = 2500
+		ghaterDuration = 20
+		splashDelay = 500
 
 	setTimeout (->
 
@@ -271,10 +271,10 @@ splashBalls = (isFall) ->
 	velocityRange = 30
 	if isFall
 		velocityRange = 10
-		velocityRange = 400 if window.isMobile
+		velocityRange = 50 if window.isMobile
 	one_deg = 360 / balls.length
-	one_deg = 360 / balls.length /2 if isFall
-	rand_rag = 10
+	one_deg = 360 / (balls.length * 2) if isFall
+	rand_rag = 1
 
 	for ball,i in balls
 		ball.t = 0
@@ -286,6 +286,7 @@ splashBalls = (isFall) ->
 		ball.boundStrength = BOUND_STRENGTH_VERTICAL
 		ball.boundReduction = 0.999
 		deg = one_deg * i * -1 + 180 * ((Math.random() * rand_rag) - rand_rag / 2)
+		deg = one_deg * i * -1 + 180 if isFall
 		v = splashVelocity deg
 		ball.vx = v.x * velocityRange
 		ball.vy = v.y * velocityRange

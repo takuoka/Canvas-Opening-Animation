@@ -40,7 +40,7 @@
       this.vy = 0;
       this.g = GRAVITY_NUM;
       if (window.isMobile) {
-        this.g = GRAVITY_NUM * 70;
+        this.g = GRAVITY_NUM * 300;
       }
       this.t = 0;
       this.bottom = bottom;
@@ -49,7 +49,7 @@
       this.char = char;
       this.boundReduction = 0.986;
       if (window.isMobile) {
-        this.boundReduction = 0.989;
+        this.boundReduction = 0.96;
       }
       this.rotate = 0;
       this.move_gravity = function() {
@@ -121,7 +121,7 @@
   initAnimation = function() {
     var addBallDelay, addCount, addInterval, cell_horizontal, cell_size, char, gatherDelay, ghaterDuration, margin_horizontal, r, splashDelay, startY, x, y;
     addCount = 0;
-    margin_horizontal = 30;
+    margin_horizontal = maxW / 10;
     cell_horizontal = 5;
     cell_size = (maxW - margin_horizontal * 2) / cell_horizontal;
     x = function(n) {
@@ -140,13 +140,13 @@
     y = function(n) {
       var gap;
       if (n <= 2) {
-        gap = r * -2.5;
+        gap = r * -3;
       }
       if (n === 3) {
         gap = 0;
       }
       if (n >= 4) {
-        gap = r * 2.5;
+        gap = r * 3;
       }
       return maxH / 2 + gap;
     };
@@ -155,7 +155,7 @@
     char = ['A', 'r', 't', '&', 'H', 'a', 'c', 'k'];
     addBallDelay = 50;
     if (window.isMobile) {
-      addBallDelay = 300;
+      addBallDelay = 100;
     }
     addInterval = setInterval((function() {
       balls.push(new Ball(x(addCount), startY, r, y(addCount), char[addCount]));
@@ -170,9 +170,9 @@
     ghaterDuration = 70;
     splashDelay = 420;
     if (window.isMobile) {
-      gatherDelay = 4000;
-      ghaterDuration = 5;
-      splashDelay = 700;
+      gatherDelay = 2500;
+      ghaterDuration = 20;
+      splashDelay = 500;
     }
     return setTimeout((function() {
       var x_ball;
@@ -274,14 +274,14 @@
     if (isFall) {
       velocityRange = 10;
       if (window.isMobile) {
-        velocityRange = 400;
+        velocityRange = 50;
       }
     }
     one_deg = 360 / balls.length;
     if (isFall) {
-      one_deg = 360 / balls.length / 2;
+      one_deg = 360 / (balls.length * 2);
     }
-    rand_rag = 10;
+    rand_rag = 1;
     for (i = _i = 0, _len = balls.length; _i < _len; i = ++_i) {
       ball = balls[i];
       ball.t = 0;
@@ -300,6 +300,9 @@
       ball.boundStrength = BOUND_STRENGTH_VERTICAL;
       ball.boundReduction = 0.999;
       deg = one_deg * i * -1 + 180 * ((Math.random() * rand_rag) - rand_rag / 2);
+      if (isFall) {
+        deg = one_deg * i * -1 + 180;
+      }
       v = splashVelocity(deg);
       ball.vx = v.x * velocityRange;
       ball.vy = v.y * velocityRange;
